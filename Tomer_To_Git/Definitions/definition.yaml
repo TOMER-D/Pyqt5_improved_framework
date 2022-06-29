@@ -1,0 +1,30 @@
+gui_root_dir_name: "Tomer_To_Git"
+
+---
+main_directories:
+    definitions: "Definitions"
+    ui: "ui_screen_files"
+    py: "py_screen_files"
+    controller: "controller_screen_files"
+---
+main_function:
+    arguments:
+        installer: "installer"
+        main_window: "main_window"
+    name:
+        before_module_name: "install_"
+        after_module_name: "_controller"
+---
+controller_structure:
+    imports:
+        from:
+            main_directories#definitions#:
+                screen_definition: ["MyMainWindow", "InstallerDefinition"]
+        import:
+            main_directories#definitions#: "general_screen_functions as fg"
+
+    description: "# this is the main function, the program understand it by the name,\n
+                # please do not change the prototype of this function."
+
+    main_function$: None
+
