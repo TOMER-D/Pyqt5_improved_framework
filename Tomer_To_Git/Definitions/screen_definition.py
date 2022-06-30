@@ -107,6 +107,14 @@ class MyMainWindow(QMainWindow):
     def local_name(self):
         return self.__LocalName
 
+    def memory_dict_copy(self):
+        return self.__screens_manager[self.__LocalName].copy()
+
+    def __getitem__(self, item):
+        return self.__screens_manager[self.__LocalName][item]
+
+    def __setitem__(self, key, value):
+        self.__screens_manager[self.__LocalName][key] = value
 
 class ScreensManager:
     def __init__(self):
@@ -220,6 +228,9 @@ class ScreensManager:
         def change_anyway(self, key, value):
             key = self.__key_transform(key)
             self.values_dict[key] = value
+
+        def copy(self):
+            return self.values_dict.copy()
 
         def __setitem__(self, key, value):
             key = self.__key_transform(key)

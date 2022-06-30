@@ -1,9 +1,9 @@
 import os
 def main():
-    ui_screen_files_path = os.path.realpath("../ui_screen_files")
-    controller_screen_files_path = os.path.realpath("../controller_screen_files")
-    py_screen_files_path = os.path.realpath("../py_screen_files")
-    main_directory_gui_name = os.path.realpath("../").split(os.sep)[-1]
+    ui_screen_files_path = os.path.realpath("ui_screen_files")
+    controller_screen_files_path = os.path.realpath("controller_screen_files")
+    py_screen_files_path = os.path.realpath("py_screen_files")
+    main_directory_gui_name = os.path.realpath("/").split(os.sep)[-1]
     print(main_directory_gui_name)
 
     ui_files = [item.name for item in os.scandir(ui_screen_files_path) if
