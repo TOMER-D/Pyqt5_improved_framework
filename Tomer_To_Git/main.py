@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 from Tomer_To_Git.py_screen_files.main_menu import Ui_MainWindow
-from Tomer_To_Git.Definitions.screen_definition import InstallerDefinition
+from Tomer_To_Git.definitions_files.screen_definition import InstallerDefinition
 import sys
 
 

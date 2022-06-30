@@ -2,7 +2,7 @@ from functools import partial
 
 from Tomer_To_Git.py_screen_files.profiles import Ui_ProfilesWindow
 from Tomer_To_Git.py_screen_files.speaker_distribution import Ui_SpeakerDistributionWindow
-import Tomer_To_Git.Definitions.general_screen_functions as gf
+import Tomer_To_Git.definitions_files.general_screen_functions as gf
 
 
 

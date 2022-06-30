@@ -1,6 +1,7 @@
 from tkinter import filedialog
 from tkinter import Tk
 from tkinter import messagebox
+# Auxiliary functions for user
 
 
 # showing an error message on the screen, get_structure_names the title and the message as strings
@@ -16,6 +17,13 @@ def info_message(title="", message="", **options):
     messagebox.showinfo(title=title, message=message, **options)
     tk.destroy()
 
+
+# set a background picture for an object
+def set_background(pyqt_object, picture_path):
+    picture_path = picture_path.replace("\\", "/")
+    pyqt_object.setStyleSheet(
+        "#" + str(
+            pyqt_object.objectName()) + " { border-image: url(" + picture_path + ") 0 0 0 0 stretch stretch; }")
 
 # open folder dialog / folder browser for choosing the path of file
 # return the path of the chosen file

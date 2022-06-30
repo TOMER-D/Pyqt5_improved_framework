@@ -1,5 +1,5 @@
 import os
-
+import pathlib
 from PyQt5.QtWidgets import QMainWindow
 import importlib.util
 
@@ -36,8 +36,9 @@ class InstallerDefinition:
         :return:
         """
         file_name = str(ui_object.__module__).split(".")[-1]
+        print("file_name = ", file_name)
         self.__screens.append(main_window)
-        self.screens_manager.add_screen(main_window.local_name(), main_window, multi_windows, parallel_screens)
+        self.screens_manager.add_screen(main_window.local_name(), file_name, main_window, multi_windows, parallel_screens)
         func = self.__name_main_functions[file_name]
         #func = self.__screens_to_init_function[main_window.objectName()]
         func(self, main_window)
@@ -91,6 +92,7 @@ class MyMainWindow(QMainWindow):
     def add_end_function(self, func):
         self.__end_functions.append(func)
 
+    # very important for...
     def closeEvent(self, event):
         for func in self.__end_functions:
             func()
@@ -98,11 +100,23 @@ class MyMainWindow(QMainWindow):
         print("'" + str(self.__LocalName) + "'", "is closing")
         event.accept()
 
+    # method for...
     def get_object_by_name(self, object_name):
         for child in self.centralWidget().children():
             if child.objectName() == object_name:
                 return child
         raise Exception("there isn't an object called '" + str(object_name) + "' in " + str(self.__LocalName))
+
+    # method for setting background picture
+    def set_background(self, picture_name, from_relate_folder=True):
+        if from_relate_folder:
+            picture_name = pathlib.Path(__file__).parent.parent.resolve().__str__() + "/images/" +\
+                self["#FILE NAME"] + "_images" + "/" + picture_name
+        picture_name = picture_name.replace("\\", "/")
+        print(picture_name)
+        self.setStyleSheet(
+            "#" + str(
+                self.objectName()) + " { border-image: url(" + picture_name + ") 0 0 0 0 stretch stretch; }")
 
     def local_name(self):
         return self.__LocalName
@@ -116,6 +130,7 @@ class MyMainWindow(QMainWindow):
     def __setitem__(self, key, value):
         self.__screens_manager[self.__LocalName][key] = value
 
+
 class ScreensManager:
     def __init__(self):
         self.current_screen = None
@@ -123,10 +138,11 @@ class ScreensManager:
         self._screens_dict = dict([])
         self.screen_order = ScreensManager.ScreensOrder()
 
-    def add_screen(self, screen_name, screen_object, multi_windows, parallel_screens, sensitive_to_letter_types=False):
+    def add_screen(self, screen_name, file_name, screen_object, multi_windows, parallel_screens, sensitive_to_letter_types=False):
         self.current_screen = screen_name
         screen_definition = ScreensManager.ScreenDict(sensitive_to_letter_types)
-        self.screen_order.append(screen_name,screen_object)
+        self.screen_order.append(screen_name, screen_object)
+        screen_definition["#FILE NAME"] = file_name
         screen_definition["#SCREEN NAME"] = screen_name
         screen_definition["#SCREEN OBJECT"] = screen_object
         screen_definition["#PREVIOUS SCREEN"] = (self.screen_order[-2][0] if len(self.screen_order) > 1 else None)
@@ -139,7 +155,7 @@ class ScreensManager:
         object_name = object_name[8:-2]
         if not multi_windows:
             return object_name
-        ls = list(self._screens_dict.keys()) # type: list[str]
+        ls = list(self._screens_dict.keys())  # type: list[str]
         max_index = 0
         for item in ls:
             if item[:len(object_name)] == object_name:

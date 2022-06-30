@@ -1,6 +1,6 @@
 import os.path
 
-import Tomer_To_Git.Definitions.general_screen_functions as gf
+import Tomer_To_Git.definitions_files.general_screen_functions as gf
 from functools import partial
 from DB_objects.details import Details
 from DB_objects.db_manager import DataBaseVendor

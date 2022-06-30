@@ -1,6 +1,8 @@
-from Tomer_To_Git.Definitions.screen_definition import MyMainWindow
-from Tomer_To_Git.Definitions.screen_definition import InstallerDefinition
-import Tomer_To_Git.Definitions.general_screen_functions as gf
+import os.path
+
+from Tomer_To_Git.definitions_files.screen_definition import MyMainWindow
+from Tomer_To_Git.definitions_files.screen_definition import InstallerDefinition
+import Tomer_To_Git.definitions_files.general_screen_functions as gf
 
 
 # this is the main function, the program understand it by the name,
@@ -11,6 +13,8 @@ def install_main_menu_controller(installer, main_window):
 	:type installer: InstallerDefinition
 	"""
 	print("Install main_menu")
-	print(main_window.get_object_by_name("upload_record"))
+	path = "picture1.jpg"
+	main_window.set_background(path)
+
 
 	
