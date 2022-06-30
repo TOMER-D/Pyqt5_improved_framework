@@ -11,6 +11,6 @@ def install_main_menu_controller(installer, main_window):
 	:type installer: InstallerDefinition
 	"""
 	print("Install main_menu")
-	print(main_window["#screen name"])
+	print(main_window.get_object_by_name("upload_record"))
 
 	

@@ -250,6 +250,7 @@ class ScreensManager:
                 string += "key :'" + str(key) + "', value = '" + str(value) + "'\n"
             return string
 
+
 if __name__ == '__main__':
     for i, val in enumerate(os.scandir("../controller_screen_files")):
         print("i :", i, ", val :", val)
