@@ -1,11 +1,11 @@
 gui_root_dir_name: "Tomer_To_Git"
-
 ---
 main_directories:
     definitions: "definitions_files"
     ui: "ui_screen_files"
     py: "py_screen_files"
     controller: "controller_screen_files"
+    images: "images"
 ---
 main_function:
     arguments:

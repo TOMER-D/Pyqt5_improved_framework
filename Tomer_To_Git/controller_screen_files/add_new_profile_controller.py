@@ -10,4 +10,5 @@ def install_add_new_profile_controller(installer, main_window):
 	:type installer: InstallerDefinition
 	"""
 	print("Install add_new_profile")
+	print("#PREVIOUS SCREEN :", main_window["#PREVIOUS SCREEN"])
 	

@@ -36,7 +36,6 @@ class InstallerDefinition:
         :return:
         """
         file_name = str(ui_object.__module__).split(".")[-1]
-        print("file_name = ", file_name)
         self.__screens.append(main_window)
         self.screens_manager.add_screen(main_window.local_name(), file_name, main_window, multi_windows, parallel_screens)
         func = self.__name_main_functions[file_name]
@@ -107,13 +106,19 @@ class MyMainWindow(QMainWindow):
                 return child
         raise Exception("there isn't an object called '" + str(object_name) + "' in " + str(self.__LocalName))
 
+    def get_pictures_path(self):
+        return (pathlib.Path(__file__).parent.parent.resolve().__str__() + "/images/" +
+                       self["#FILE NAME"] + "_images").replace("\\", "/")
+
     # method for setting background picture
     def set_background(self, picture_name, from_relate_folder=True):
         if from_relate_folder:
-            picture_name = pathlib.Path(__file__).parent.parent.resolve().__str__() + "/images/" +\
-                self["#FILE NAME"] + "_images" + "/" + picture_name
+            picture_name = self.get_pictures_path() + "/" + picture_name
         picture_name = picture_name.replace("\\", "/")
-        print(picture_name)
+        if not os.path.exists(pathlib.Path(picture_name).parent.resolve()):
+            raise Exception("The folder '" + str(picture_name).split("/")[-2] + "' is not exist in the right place")
+        if not os.path.exists(picture_name):
+            raise Exception("there is not such a full-name in the relate folder, not existing full_name: " + str(picture_name).split("/")[-1])
         self.setStyleSheet(
             "#" + str(
                 self.objectName()) + " { border-image: url(" + picture_name + ") 0 0 0 0 stretch stretch; }")
