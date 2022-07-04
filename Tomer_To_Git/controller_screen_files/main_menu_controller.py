@@ -21,7 +21,6 @@ def install_main_menu_controller(installer, main_window):
 	enter_profiles = main_window.get_object_by_name("enter_profiles")
 	func = partial(btn_function, installer)
 	enter_profiles.clicked.connect(func)
-	main_window["VVV"] = "shay"
 	print(main_window.get_pictures_path())
 
 

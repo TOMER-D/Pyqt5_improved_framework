@@ -1,5 +1,7 @@
 import importlib
 import os
+import pathlib
+
 import yaml
 
 
@@ -45,7 +47,9 @@ class GuiFolder:
 
 class GuiFolderUi(GuiFolder):
     def __init__(self, configuration):
-        path = "../" + configuration["main_directories", "ui"]
+        path = str(pathlib.Path(__file__).parent.parent.parent.resolve())
+        path += "/" + configuration["main_directories", "name@"] + "/" + configuration[
+            "main_directories", "ui", "name@"]
         GuiFolder.__init__(self, path, configuration)
 
     def convert_to_folder(self, py_folder):
@@ -67,7 +71,9 @@ class GuiFolderUi(GuiFolder):
 
 class GuiFolderPy(GuiFolder):
     def __init__(self, configuration):
-        path = "../" + configuration["main_directories", "py"]
+        path = str(pathlib.Path(__file__).parent.parent.parent.resolve())
+        path += "/" + configuration["main_directories", "name@"] + "/" + configuration[
+            "main_directories", "py", "name@"]
         GuiFolder.__init__(self, path, configuration)
 
     def convert_to_folder(self, controller_folder):
@@ -81,7 +87,8 @@ class GuiFolderPy(GuiFolder):
 
 class GuiFolderController(GuiFolder):
     def __init__(self, configuration):
-        path = "../" + configuration["main_directories", "controller"]
+        path = str(pathlib.Path(__file__).parent.parent.parent.resolve())
+        path += "/" + configuration["main_directories","name@"] + "/" + configuration["main_directories", "controller","name@"]
         GuiFolder.__init__(self, path, configuration)
 
     def main_function_name(self, module_name):
@@ -110,22 +117,143 @@ class GuiFolderController(GuiFolder):
         return ls
 
     def create_file(self, common_name):
-        controller_structure = ""
-        print(config)
-        ls = config["controller_structure","imports","from","DEFINITIONS_FILES","SCREEN_DEFINITION"]
-        for item in ls:
-            controller_structure += "from " + config["gui_root_dir_name"]
-            controller_structure += "." + config["main_directories", "definitions_files"]
-            controller_structure += "." + config["SCREEN_DEFINITION"] + " import " + item + "\n"
-        additional_import = config["controller_structure","imports","import","DEFINITIONS_FILES"]
-        controller_structure += "import " + config["gui_root_dir_name"] + "." + config["main_directories", "DEFINITIONS"] + \
-                                "." + additional_import + "\n"
+        ds = GuiFolderController.DocumentStructure()
+        main_directories = self.configuration["main_directories", "name@"]
+        definitions = self.configuration["main_directories", "definitions", "name@"]
+        screen_definition = self.configuration["main_directories", "definitions", "screen_definition", "name@"]
+        screen_definition_classes = self.configuration["main_directories", "definitions", "screen_definition", "classes@"]
+        general_screen_functions = self.configuration["main_directories", "definitions", "general_screen_functions", "name@"]
+        for class_text in screen_definition_classes:
+            ds.add_from([main_directories, definitions, screen_definition], class_text)
+        ds.add_import([main_directories, definitions, general_screen_functions], "as gf")
+        function_name = self.configuration["main_function", "additional_name","before_module_name","name@"]
+        function_name += common_name
+        function_name += self.configuration["main_function", "additional_name","after_module_name","name@"]
+        arguments = self.configuration["main_function","arguments","list@"]
+        description = self.configuration["main_function","description","name@"]
+        ds.add_function(function_name=function_name,arguments=arguments,description=description)
+        file = open(self.real_path + "/" + common_name + "_controller.py", "w")
+        file.write(ds.to_string())
+        file.close()
+        return ds.to_string()
 
-        print(controller_structure)
+    class DocumentStructure:
+        def __init__(self):
+            self.imports = []
+            self.froms = []
+            self.functions = []
+
+        def add_import(self, import_chain=None, after_text=""):
+            self.imports.append(GuiFolderController.DocumentStructure.Import(import_chain,after_text))
+
+        def add_from(self, from_chain=None,import_chain=None,after_text=""):
+            self.froms.append(GuiFolderController.DocumentStructure.From(from_chain,import_chain,after_text))
+
+        def add_function(self, function_name,function_as_text="pass", arguments=None, description=""):
+            self.functions.append(GuiFolderController.DocumentStructure.Function
+                                  (function_name, function_as_text, arguments, description))
+
+        def to_string(self):
+            string = ""
+            for item in self.imports:
+                string += item.to_string() + "\n"
+            for item in self.froms:
+                string += item.to_string() + "\n"
+
+            string += "\n\n"
+            for item in self.functions:
+                string += item.to_string() + "\n"
+                string += "\n\n"
+            return string
+
+        class From:
+            def __init__(self, from_chain=None,import_chain=None,after_text=""):
+                self.from_chain = from_chain
+                self.import_chain = import_chain
+                self.after_text = after_text
+
+            def to_string(self):
+                string = "from "
+                if type(self.from_chain) == list:
+                    string += ".".join(self.from_chain)
+                else:
+                    string += self.from_chain
+                string += " import "
+                if type(self.import_chain) == list:
+                    string += ".".join(self.import_chain)
+                else:
+                    string += self.import_chain
+                if self.after_text != "":
+                    string += " " + self.after_text
+                return string
+
+        class Import:
+            def __init__(self, import_chain=None, after_text=""):
+                """
+                :type import_path: list
+                :param import_path:
+                """
+
+                self.import_chain = import_chain
+                self.after_text = after_text
+
+            def to_string(self):
+                string = "import "
+                if type(self.import_chain) == list:
+                    string += ".".join(self.import_chain)
+                else:
+                    string += self.import_chain
+                if self.after_text != "":
+                    string += " " + self.after_text
+                return string
+
+        class Function:
+            def __init__(self, function_name,function_as_text, arguments=None, description=""):
+                """
+                :type function_name: str
+                :type argument: list[str]
+                :type description: str
+                :type function_as_text: str
+                :param function_name:
+                :param argument:
+                :param description:
+                """
+                self.description = description
+                self.function_name = function_name
+                self.arguments = [] if arguments is None else arguments
+                self.function_text = function_as_text
+
+            def maximum_default(self, text, characters_num):
+                string = "#"
+                text_arr = text.split(" ")
+                row_len = 2
+                for word in text_arr:
+                    if len(word) + row_len + 1 > characters_num:
+                        row_len = len(word) + 2
+                        string += "\n# " + word
+                    else:
+                        string += " " + word
+                        row_len += len(word) + 1
+                return string
+
+            def to_string(self, description_length_line=70):
+                string = self.maximum_default(self.description, description_length_line) + "\n"
+                string += "def " + self.function_name + "("
+                for i, argument in enumerate(self.arguments):
+                    if i == 0:
+                        string += argument
+                    else:
+                        string += ", " + argument
+                string += "):\n\t"
+                string += self.function_text.replace("\n", "\n\t")
+                return string
+
 
 class GuiFolderImages(GuiFolder):
     def __init__(self, configuration):
-        path = "../" + configuration["main_directories", "images"]
+        path = str(pathlib.Path(__file__).parent.parent.parent.resolve())
+        path += "/" + configuration["main_directories", "name@"] + "/" + configuration[
+            "main_directories", "images", "name@"]
         GuiFolder.__init__(self, path, configuration)
 
     def create_folders(self, gui_folder):
@@ -164,15 +292,6 @@ class Configuration:
     def __create_dict(self, dic):
         my_dict = dict([])
         for k, v in dic.items():
-            arr = k.split("#")
-            if len(arr) > 1:
-                arr = arr[:-1]
-                k = self[arr]
-            arr = k.split('$')
-            if len(arr) > 1:
-                arr = arr[:-1]
-                v = self[arr]
-                k = arr[-1]
             if type(v) == dict:
                 v = self.__create_dict(v)
             my_dict[k.strip().upper()] = v
@@ -186,11 +305,13 @@ class Configuration:
 
     def __getitem__(self, items):
         search = self.__main_dict
-        if len(items) == 1 and type(search[items]) == str:
+        if type(items) == str:
             return search[items]
         for item in items:
             item = item.strip().upper()
             search = search[item]
+            if type(search) == str:
+                break
         return search
 
     def __str__(self):
@@ -214,10 +335,12 @@ if __name__ == '__main__':
     ui_folder = GuiFolderUi(config)
     py_folder = GuiFolderPy(config)
     images_folder = GuiFolderImages(config)
-    ui_folder.convert_to_folder(py_folder)
-    py_folder.convert_to_folder(controller_folder)
-    controller_folder.create_file("message")
-    images_folder.create_folders(py_folder)
+
+
+    # ui_folder.convert_to_folder(py_folder)
+    # py_folder.convert_to_folder(controller_folder)
+    # controller_folder.create_file("message")
+    # images_folder.create_folders(py_folder)
     # print(ui_folder.get_common_names())
 
 
