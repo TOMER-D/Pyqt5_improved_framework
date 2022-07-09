@@ -1,8 +1,8 @@
 import importlib
 import os
 import pathlib
-
 import yaml
+import datetime
 
 
 class GuiFolder:
@@ -82,13 +82,15 @@ class GuiFolderPy(GuiFolder):
         :param controller_folder:
         :return:
         """
-        pass
+        for common_name in self.get_common_names():
+            if not controller_folder.is_exist(common_name):
+                controller_folder.create_file(common_name)
 
 
 class GuiFolderController(GuiFolder):
     def __init__(self, configuration):
         path = str(pathlib.Path(__file__).parent.parent.parent.resolve())
-        path += "/" + configuration["main_directories","name@"] + "/" + configuration["main_directories", "controller","name@"]
+        path += "/" + configuration["main_directories", "name@"] + "/" + configuration["main_directories", "controller","name@"]
         GuiFolder.__init__(self, path, configuration)
 
     def main_function_name(self, module_name):
@@ -115,6 +117,19 @@ class GuiFolderController(GuiFolder):
             else:
                 ls[file[:-3]] = self.get_main_function(file)
         return ls
+
+    def get_common_names(self):
+        ls = []
+        for item in os.scandir(self.real_path):
+            if item.is_file():
+                name = item.name# type:str
+                name = name[:name.rfind("_controller")]
+                ls.append(name)
+        return ls
+
+    def is_exist(self, common_name):
+        ls = self.get_common_names()
+        return common_name in ls
 
     def create_file(self, common_name):
         ds = GuiFolderController.DocumentStructure()
@@ -211,11 +226,11 @@ class GuiFolderController(GuiFolder):
             def __init__(self, function_name,function_as_text, arguments=None, description=""):
                 """
                 :type function_name: str
-                :type argument: list[str]
+                :type arguments: list[str]
                 :type description: str
                 :type function_as_text: str
                 :param function_name:
-                :param argument:
+                :param arguments:
                 :param description:
                 """
                 self.description = description
@@ -256,6 +271,15 @@ class GuiFolderImages(GuiFolder):
             "main_directories", "images", "name@"]
         GuiFolder.__init__(self, path, configuration)
 
+    def get_common_names(self):
+        ls = []
+        for item in os.scandir(self.real_path):
+            if item.is_dir():
+                name = item.name  # type:str
+                name = name[:name.rfind("_images")]
+                ls.append(name)
+        return ls
+
     def create_folders(self, gui_folder):
         """
         :type gui_folder: GuiFolder
@@ -271,12 +295,7 @@ class GuiFolderImages(GuiFolder):
 
 # this is an object that analyzed the data in the yaml, its goal is to give us the
 # details in the most organized way.
-# there are 2 sign in the yaml that we supposed to understand - the # and the $.
-# the # is the way to change the *key* to value of the original word.
-# the $ is the way to change the *key and the value* of the original word.
 # both signs use of the words that define above.
-
-
 class Configuration:
     # this configuration is not sensitive to letter type for keys
     def __init__(self, file_path):
@@ -299,9 +318,6 @@ class Configuration:
 
     def refresh(self):
         self.__init__(self.__file_path)
-
-    def __set_dictionary(self):
-        pass
 
     def __getitem__(self, items):
         search = self.__main_dict
@@ -329,18 +345,56 @@ class Configuration:
         return string
 
 
-if __name__ == '__main__':
-    config = Configuration("definition.yaml")
+class Comments:
+    def __init__(self):
+        self.__string = ""
+        self.__line = ""
+        self.__start_comment_time = None
+        self.__last_comment_time = None
+
+    def add_comment(self, comment):
+        time = datetime.datetime.now()
+        if self.__start_comment_time is None:
+            self.__start_comment_time = time
+        self.__line = comment + " --time--> " + str(time.strftime("%H:%M:%S"))
+        print(self.__line)
+        self.__string += self.__line + "\n"
+        self.__last_comment_time = datetime.datetime.now()
+
+    def get_last_comment(self):
+        return self.__line
+
+    def get_whole_comments(self):
+        return self.__string
+
+    def first_to_last_time(self):
+        string = "first comment time : " + str(self.__start_comment_time.strftime("%H:%M:%S")) + "\n"
+        string += "last comment time : " + str(self.__last_comment_time.strftime("%H:%M:%S")) + "\n"
+        string += "diff time : " + str(self.__last_comment_time - self.__start_comment_time)
+        return string
+
+
+def main():
+
+    comments = Comments()
+    comments.add_comment("start updating")
+    comments.add_comment("get definitions")
+
+    config_path = str(pathlib.Path(__file__).parent.resolve()) + "/" + "definition.yaml"
+    config = Configuration(config_path)
     controller_folder = GuiFolderController(config)
     ui_folder = GuiFolderUi(config)
     py_folder = GuiFolderPy(config)
     images_folder = GuiFolderImages(config)
 
+    comments.add_comment("files and dirs creation")
 
-    # ui_folder.convert_to_folder(py_folder)
-    # py_folder.convert_to_folder(controller_folder)
-    # controller_folder.create_file("message")
-    # images_folder.create_folders(py_folder)
-    # print(ui_folder.get_common_names())
+    ui_folder.convert_to_folder(py_folder)
+    py_folder.convert_to_folder(controller_folder)
+    images_folder.create_folders(py_folder)
+
+    comments.add_comment("finish updating")
+    print(comments.first_to_last_time())
+
 
 

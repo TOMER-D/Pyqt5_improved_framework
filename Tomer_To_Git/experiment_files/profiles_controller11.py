@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QTableWidgetItem
 import Tomer_To_Git.definitions_files.general_screen_functions as gf
-from Tomer_To_Git.py_screen_files.add_new_profile import Ui_AddNewProfileWindow
+from Tomer_To_Git.py_screen_files11.add_new_profile import Ui_AddNewProfileWindow
 from functools import partial
 from DB_objects.db_manager import DataBaseVendor
 
